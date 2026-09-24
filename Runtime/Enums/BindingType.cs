@@ -1,4 +1,4 @@
-namespace ikeAssets.ModularServiceLocator.Runtime
+namespace MikeAssets.ModularServiceLocator.Runtime
 {
     public enum BindingType
     {

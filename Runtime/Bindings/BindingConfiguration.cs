@@ -1,5 +1,3 @@
-using ikeAssets.ModularServiceLocator.Runtime;
-
 namespace MikeAssets.ModularServiceLocator.Runtime
 {
     public class BindingConfiguration : IBindingConfiguration

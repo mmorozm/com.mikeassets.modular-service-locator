@@ -1,10 +1,27 @@
 {
   "name": "com.mikeassets.modular-service-locator",
-  "version": "0.0.16-preview",
+  "version": "1.0.0",
   "displayName": "Mike Assets - Modular Service Locator",
-  "description": "Provides a possibility to create a modular service locator",
+  "description": "A lightweight modular service locator / DI container for Unity. Group bindings into modules and register or unregister them at runtime, with transient, singleton and constant bindings, constructor injection and cyclic-dependency detection.",
+  "unity": "2021.3",
+  "license": "MIT",
+  "keywords": [
+    "dependency-injection",
+    "di",
+    "ioc",
+    "service-locator",
+    "modules"
+  ],
   "author": {
     "name": "Mykhailo Moroz",
-    "email": "mickaelfrost@gmail.com"
-  }
+    "email": "mickaelfrost@gmail.com",
+    "url": "https://github.com/mmorozm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmorozm/com.mikeassets.modular-service-locator.git"
+  },
+  "documentationUrl": "https://github.com/mmorozm/com.mikeassets.modular-service-locator#readme",
+  "changelogUrl": "https://github.com/mmorozm/com.mikeassets.modular-service-locator/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/mmorozm/com.mikeassets.modular-service-locator/blob/main/LICENSE"
 }

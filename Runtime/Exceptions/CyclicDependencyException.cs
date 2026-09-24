@@ -16,7 +16,7 @@ namespace MikeAssets.ModularServiceLocator
         public CyclicDependencyException(Type service1) :
             base($"Cannot construct type {service1}, type is in cyclic dependency")
         {
-            Types = new List<Type> { service1};
+            Types = new List<Type> { service1 };
         }
     }
 }

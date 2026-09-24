@@ -1,4 +1,4 @@
-using ikeAssets.ModularServiceLocator.Runtime;
+using System;
 
 namespace MikeAssets.ModularServiceLocator.Runtime
 {
@@ -10,37 +10,30 @@ namespace MikeAssets.ModularServiceLocator.Runtime
 
         public void ToTransient<TImplementation>() where TImplementation : T
         {
-            m_configuration.BindingType = BindingType.Transient;
-
-            var service = typeof(T);
-            var implementationType = typeof(TImplementation);
-            var provider = new TransientBindingProvider(implementationType);
-            provider.Contracts.Add(service);
-
-            m_configuration.Provider = provider;
+            SetProvider(BindingType.Transient, new TransientBindingProvider(typeof(TImplementation)));
         }
 
         public void ToConstant(object constant)
         {
-            m_configuration.BindingType = BindingType.Constant;
-
-            var service = typeof(T);
-            var provider = new ConstantBindingProvider(constant);
-            
-            provider.Contracts.Add(service);
-
-            m_configuration.Provider = provider;
+            SetProvider(BindingType.Constant, new ConstantBindingProvider(constant));
         }
 
+        public void ToSingleton<TImplementation>() where TImplementation : T
+        {
+            SetProvider(BindingType.Singleton, new SingletonBindingProvider(typeof(TImplementation)));
+        }
+
+        [Obsolete("Use ToSingleton<TImplementation>() instead.")]
         public void ToSingletone<TImplementation>() where TImplementation : T
         {
-            m_configuration.BindingType = BindingType.Constant;
+            ToSingleton<TImplementation>();
+        }
 
-            var implementationType = typeof(TImplementation);
-            var service = typeof(T);
-            var provider = new SingletoneBindingProvider(implementationType);
-            
-            provider.Contracts.Add(service);
+        void SetProvider(BindingType bindingType, IBindingProvider provider)
+        {
+            provider.Contracts.Add(typeof(T));
+
+            m_configuration.BindingType = bindingType;
             m_configuration.Provider = provider;
         }
     }
@@ -53,46 +46,31 @@ namespace MikeAssets.ModularServiceLocator.Runtime
 
         public void ToTransient<TImplementation>() where TImplementation : T1, T2
         {
-            m_configuration.BindingType = BindingType.Transient;
-
-            var service1 = typeof(T1);
-            var service2 = typeof(T2);
-
-            var implementationType = typeof(TImplementation);
-            
-            var provider = new TransientBindingProvider(implementationType);
-            provider.Contracts.Add(service1);
-            provider.Contracts.Add(service2);
-
-            m_configuration.Provider = provider;
+            SetProvider(BindingType.Transient, new TransientBindingProvider(typeof(TImplementation)));
         }
 
         public void ToConstant(object constant)
         {
-            m_configuration.BindingType = BindingType.Constant;
-            
-            var service1 = typeof(T1);
-            var service2 = typeof(T2);
-            
-            var provider = new ConstantBindingProvider(constant);
-            provider.Contracts.Add(service1);
-            provider.Contracts.Add(service2);
-
-            m_configuration.Provider = provider;
+            SetProvider(BindingType.Constant, new ConstantBindingProvider(constant));
         }
 
+        public void ToSingleton<TImplementation>() where TImplementation : T1, T2
+        {
+            SetProvider(BindingType.Singleton, new SingletonBindingProvider(typeof(TImplementation)));
+        }
+
+        [Obsolete("Use ToSingleton<TImplementation>() instead.")]
         public void ToSingletone<TImplementation>() where TImplementation : T1, T2
         {
-            m_configuration.BindingType = BindingType.Constant;
-            
-            var service1 = typeof(T1);
-            var service2 = typeof(T2);
-            
-            var implementationType = typeof(TImplementation);
-            var provider = new SingletoneBindingProvider(implementationType);
-            provider.Contracts.Add(service1);
-            provider.Contracts.Add(service2);
+            ToSingleton<TImplementation>();
+        }
 
+        void SetProvider(BindingType bindingType, IBindingProvider provider)
+        {
+            provider.Contracts.Add(typeof(T1));
+            provider.Contracts.Add(typeof(T2));
+
+            m_configuration.BindingType = bindingType;
             m_configuration.Provider = provider;
         }
     }
