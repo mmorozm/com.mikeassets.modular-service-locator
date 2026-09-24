@@ -1,19 +1,61 @@
 # com.mikeassets.modular-service-locator
 
-### What is dependency injection?
-Dependency Injection is a design pattern that reduces hard-coded dependencies between your classes by injecting these dependencies at run-time, instead of during design-time. Technically, Dependency Injection is a mechanism that allows the implementation of another, more high-level, design pattern called Inversion of Control. The purpose of both patterns is to reduce hard-coded dependencies (or ‘coupling’) between your classes.
+A lightweight modular service locator / DI container for Unity. You group bindings into **modules** and register or unregister them at runtime. For example, a `CoreModule` lives for the whole app, while a `GamePlayModule` exists only while a level is loaded.
 
-### Modular service locator for Unity
+[Changelog](CHANGELOG.md) | [Wiki](https://github.com/mmorozm/com.mikeassets.modular-service-locator/wiki) | [Issues](https://github.com/mmorozm/com.mikeassets.modular-service-locator/issues)
 
-[API Reference](https://github.com/mykhailo-moroz/com.mikeassets.modular-service-locator/wiki/API-References) | [Wiki](https://github.com/mykhailo-moroz/com.mikeassets.modular-service-locator/wiki)
+Supports Unity 2021.3 and newer, tested on Unity 6.3 LTS.
 
-[Issues](https://github.com/mykhailo-moroz/com.mikeassets.modular-service-locator/issues)
+## Install
 
-### Install from a Git URL
-Yoy can install this package via Git URL. To load a package from a Git URL:
+In the Package Manager, choose **+ → Install package from git URL…** and enter:
 
-* Open [Unity Package Manager](https://docs.unity3d.com/Manual/upm-ui.html) window.
-* Click the add **+** button in the status bar.
-* The options for adding packages appear.
-* Select Add package from git URL from the add menu. A text box and an Add button appear.
-* Enter the `https://github.com/mykhailo-moroz/com.mikeassets.modular-service-locator.git` Git URL in the text box and click Add.
+```
+https://github.com/mmorozm/com.mikeassets.modular-service-locator.git
+```
+
+To pin a release, append a tag, e.g. `…modular-service-locator.git#1.0.0`. Or add it to `Packages/manifest.json`:
+
+```json
+"com.mikeassets.modular-service-locator": "https://github.com/mmorozm/com.mikeassets.modular-service-locator.git#1.0.0"
+```
+
+## Usage
+
+```csharp
+using MikeAssets.ModularServiceLocator.Runtime;
+
+public sealed class CoreModule : LocatorModule
+{
+    public override void Load()
+    {
+        Bind<ISaveService>().ToSingleton<SaveService>();          // one lazy instance
+        Bind<IClock>().ToTransient<SystemClock>();                // new instance per resolve
+        Bind<ISceneService, IPreloadService>()                    // one object, two contracts
+            .ToConstant(new SceneService());
+    }
+}
+
+var locator = new ServiceLocator();
+locator.RegisterModule(new CoreModule());
+locator.ResolveSingletons();                  // optional: create singletons eagerly
+
+var save = locator.Get<ISaveService>();       // throws MissingBindingException if unbound
+if (locator.TryGet<IAnalytics>(out var analytics)) { /* optional service */ }
+
+locator.UnregisterModule(typeof(CoreModule).ToString());
+```
+
+Constructor injection uses the public constructor with the most parameters. Every parameter must be bound, or resolving throws `MissingConstructorParamException`. Dependency cycles throw `CyclicDependencyException`.
+
+### Code stripping (IL2CPP)
+
+Implementations are created through reflection, so with Managed Stripping enabled, mark their constructors with `[UnityEngine.Scripting.Preserve]`. In the Editor, the locator logs a warning once for each type that is missing the attribute.
+
+## Running the tests
+
+The tests ship with the package. To run them from a project that installs the package, add it to `testables` in `Packages/manifest.json`:
+
+```json
+"testables": [ "com.mikeassets.modular-service-locator" ]
+```

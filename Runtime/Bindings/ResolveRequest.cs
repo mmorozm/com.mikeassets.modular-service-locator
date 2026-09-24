@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MikeAssets.ModularServiceLocator.Runtime
 {
@@ -11,16 +10,8 @@ namespace MikeAssets.ModularServiceLocator.Runtime
         public IResolveRequest ParentRequest { get; }
 
         public IList<IResolveRequest> ChildRequests { get; set; }
-        public Type Service { get; }
-        public bool IsCyclic(Type serviceToCheck)
-        {
-            if (ChildRequests == null)
-            {
-                return false;
-            }
 
-            return ChildRequests.Any(req => req.Service == serviceToCheck || req.IsCyclic(serviceToCheck));
-        }
+        public Type Service { get; }
 
         public ResolveRequest(IReadOnlyBindingRoot root, Type service) : this(root, service, null)
         {
@@ -31,45 +22,51 @@ namespace MikeAssets.ModularServiceLocator.Runtime
             Root = root;
             Service = service;
             ParentRequest = parentRequest;
+            ChildRequests = new List<IResolveRequest>();
 
-            if (parentRequest == null || parentRequest.Service != service)
+            BuildChildRequestsGraph();
+        }
+
+        /// <summary>Returns true if <paramref name="serviceToCheck"/> is already being resolved further up the chain.</summary>
+        public bool IsCyclic(Type serviceToCheck)
+        {
+            for (var request = ParentRequest; request != null; request = request.ParentRequest)
             {
-                BuildChildRequestsGraph();   
+                if (request.Service == serviceToCheck)
+                {
+                    return true;
+                }
             }
 
-            if (parentRequest != null && parentRequest.Service == service)
-            {
-                ChildRequests = new List<IResolveRequest> {parentRequest};
-            }
+            return false;
         }
 
         private void BuildChildRequestsGraph()
         {
-            ChildRequests = new List<IResolveRequest>();
-            
-            var bindings = Root.RootBindings;
-            var binding = bindings.First(bi => bi.Service == Service);
-            var resolutionProvider = binding.Configuration.Provider;
+            if (!Root.TryFindBinding(Service, out var binding))
+            {
+                throw new MissingBindingException(Service);
+            }
 
-            var constructorParams = resolutionProvider.GetConstructorParams();
-
+            var constructorParams = binding.Configuration.Provider?.GetConstructorParams();
             if (constructorParams == null)
             {
                 return;
             }
 
-            try
+            foreach (var param in constructorParams)
             {
-                foreach (var param in constructorParams)
+                if (param.Value == Service || IsCyclic(param.Value))
                 {
-                    var resolveRequest = new ResolveRequest(Root, param.Value, ParentRequest ?? this);
-                    ChildRequests.Add(resolveRequest);
+                    throw new CyclicDependencyException(Service, param.Value);
                 }
-            }
-            catch (StackOverflowException e)
-            {
-                Console.WriteLine(e);
-                throw;
+
+                if (!Root.TryFindBinding(param.Value, out _))
+                {
+                    throw new MissingConstructorParamException(Service, param.Key);
+                }
+
+                ChildRequests.Add(new ResolveRequest(Root, param.Value, this));
             }
         }
     }

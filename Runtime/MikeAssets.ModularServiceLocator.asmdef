@@ -1,3 +1,14 @@
-﻿{
-	"name": "MikeAssets.ModularServiceLocator"
+{
+    "name": "MikeAssets.ModularServiceLocator",
+    "rootNamespace": "MikeAssets.ModularServiceLocator",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

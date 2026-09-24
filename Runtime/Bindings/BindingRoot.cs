@@ -18,17 +18,21 @@ namespace MikeAssets.ModularServiceLocator.Runtime
 
         public List<IBinding> RootBindings => m_bindings.Values.ToList();
 
+        /// <summary>Looks up the binding registered for <paramref name="service"/> without copying the binding list.</summary>
+        public bool TryGetBinding(Type service, out IBinding binding)
+        {
+            return m_bindings.TryGetValue(service, out binding);
+        }
+
+        /// <summary>Adds a binding. A binding already registered for the same service is replaced (last bind wins).</summary>
         public virtual void AddBinding(IBinding binding)
         {
-            if (!m_bindings.ContainsKey(binding.Service))
-            {
-                m_bindings.TryAdd(binding.Service, binding);
-            }
+            m_bindings[binding.Service] = binding;
         }
 
         public virtual void RemoveBinding(IBinding binding)
         {
-            m_bindings.TryRemove(binding.Service, out var _);
+            RemoveIfSame(binding);
         }
 
         public IBindingBuilder<T> Bind<T>()
@@ -53,12 +57,13 @@ namespace MikeAssets.ModularServiceLocator.Runtime
 
         public void Unbind<T>()
         {
-            
+            m_bindings.TryRemove(typeof(T), out _);
         }
 
         public void Unbind<T1, T2>()
         {
-            
+            m_bindings.TryRemove(typeof(T1), out _);
+            m_bindings.TryRemove(typeof(T2), out _);
         }
 
         protected bool IsModuleExists(string name)
@@ -78,6 +83,7 @@ namespace MikeAssets.ModularServiceLocator.Runtime
 
             foreach (var binding in bindings)
             {
+                // Bindings that already exist in the root take precedence over module bindings.
                 m_bindings.TryAdd(binding.Service, binding);
             }
         }
@@ -93,11 +99,18 @@ namespace MikeAssets.ModularServiceLocator.Runtime
 
             foreach (var binding in bindings)
             {
-                m_bindings.TryRemove(binding.Service, out _);
+                // Only remove the binding if it is still the one this module registered.
+                RemoveIfSame(binding);
             }
             
             module.Unload();
             m_modules.TryRemove(name, out _);
+        }
+
+        private bool RemoveIfSame(IBinding binding)
+        {
+            ICollection<KeyValuePair<Type, IBinding>> collection = m_bindings;
+            return collection.Remove(new KeyValuePair<Type, IBinding>(binding.Service, binding));
         }
     }
 }

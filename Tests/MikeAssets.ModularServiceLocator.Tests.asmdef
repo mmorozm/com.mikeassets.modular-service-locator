@@ -1,5 +1,6 @@
 {
     "name": "MikeAssets.ModularServiceLocator.Tests",
+    "rootNamespace": "MikeAssets.ModularServiceLocator.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
